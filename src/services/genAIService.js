@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 dotenv.config({ path: '.env.local' });
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 
 class GenAIService {

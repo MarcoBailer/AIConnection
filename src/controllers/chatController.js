@@ -2,55 +2,43 @@ import genAIService from '../services/genAIService.js';
 import { getSession, addMessageToSession, createSession } from '../services/sessionService.js';
 import SSE from 'sse-express';
 
-export const startSession = (req, res) => {
-  const sessionId = createSession();
-  res.json({ sessionId });
+export const startSession = async (req, res) => {
+  try {
+    const sessionId = await createSession();
+    res.json({ sessionId });
+  } catch (error) {
+    console.error('Erro ao iniciar sessão:', error);
+    res.status(500).json({ error: 'Erro interno do servidor.' });
+  }
 };
 
 export const sendMessage = async (req, res) => {
-  const { message, history } = req.body;
+  const { sessionId, message } = req.body;
 
-  if (!message) {
-    return res.status(400).json({ error: 'A mensagem é obrigatória.' });
+  if (!sessionId || !message) {
+    return res.status(400).json({ error: 'sessionId e message são obrigatórios.' });
   }
 
   try {
-    const response = await genAIService.sendMessage(message, history);
-    res.json({ response });
+    // Adicionar a mensagem do usuário à sessão
+    await addMessageToSession(sessionId, { author: 'user', content: message });
+
+    // Obter a sessão atualizada com o histórico de mensagens
+    const session = await getSession(sessionId);
+    const history = session.messages;
+
+    // Enviar a mensagem para o serviço de IA
+    const responseContent = await genAIService.sendMessage(message, history);
+
+    // Adicionar a resposta da IA à sessão
+    await addMessageToSession(sessionId, { author: 'ai', content: responseContent });
+
+    res.json({ response: responseContent });
   } catch (error) {
     console.error('Erro ao enviar mensagem:', error);
     res.status(500).json({ error: 'Erro interno do servidor.' });
   }
 };
-
-// export const sendMessage = async (req, res) => {
-//   const { message, sessionId } = req.body;
-
-//   if (!message || !sessionId) {
-//     return res.status(400).json({ error: 'Mensagem e sessionId são obrigatórios.' });
-//   }
-
-//   const session = getSession(sessionId);
-
-//   if (!session) {
-//     return res.status(400).json({ error: 'SessionId inválido.' });
-//   }
-
-//   try {
-//     // Adiciona a mensagem do usuário ao histórico
-//     session.history.push({ author: 'user', content: message });
-
-//     const response = await genAIService.sendMessage(message, session.history);
-
-//     // Adiciona a resposta da IA ao histórico
-//     session.history.push({ author: 'ai', content: response });
-
-//     res.json({ response });
-//   } catch (error) {
-//     console.error('Erro ao enviar mensagem:', error);
-//     res.status(500).json({ error: 'Erro interno do servidor.' });
-//   }
-// };
 
 export const sendMessageStream = async (req, res) => {
   const { message, sessionId } = req.body;

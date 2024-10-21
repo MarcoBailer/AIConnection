@@ -1,17 +1,26 @@
-const sessions = {};
+import { v4 as uuidv4 } from 'uuid';
+import Session from '../models/Session.js';
 
-export const createSession = () => {
-  const sessionId = Date.now().toString(36) + Math.random().toString(36).substr(2);
-  sessions[sessionId] = { history: [] };
+// Criar uma nova sessão
+export const createSession = async () => {
+  const sessionId = uuidv4();
+  const session = new Session({ sessionId, messages: [] });
+  await session.save();
   return sessionId;
 };
 
-export const getSession = (sessionId) => {
-  return sessions[sessionId];
+// Obter uma sessão pelo sessionId
+export const getSession = async (sessionId) => {
+  return await Session.findOne({ sessionId });
 };
 
-export const addMessageToSession = (sessionId, message) => {
-  if (sessions[sessionId]) {
-    sessions[sessionId].history.push(message);
+// Adicionar uma mensagem à sessão
+export const addMessageToSession = async (sessionId, message) => {
+  const session = await getSession(sessionId);
+  if (!session) {
+    throw new Error('Sessão não encontrada');
   }
+  session.messages.push(message);
+  await session.save();
+  return session;
 };
