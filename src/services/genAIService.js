@@ -14,9 +14,7 @@ class GenAIService {
       content: {
         parts: [msg.content],
       },
-    }));
-  
-    console.log('Histórico formatado:', JSON.stringify(formattedHistory, null, 2));
+    }));    
   
     const chat = this.model.startChat({
       messages: formattedHistory,
@@ -32,14 +30,36 @@ class GenAIService {
         },
       };
   
-      console.log('Mensagem enviada:', JSON.stringify(messageObject, null, 2));
-  
       const result = await chat.sendMessageStream(message);
   
       const response = await result.response;
       const text = await response.text();
   
       return text;
+    } catch (error) {
+      console.error('Erro ao enviar mensagem:', error);
+      throw error;
+    }
+  }
+
+  async sendMessageStream(message, history = []) {
+    const formattedHistory = history.map((msg) => ({
+      role: msg.author,
+      content: {
+        parts: [msg.content],
+      },
+    }));
+
+    const chat = this.model.startChat({
+      messages: formattedHistory,
+      generationConfig: {
+        maxOutputTokens: 500,
+      },
+    });
+
+    try {
+      const result = await chat.sendMessageStream(message);
+      return result;
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
       throw error;

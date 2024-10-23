@@ -1,3 +1,5 @@
 node_modules
 .env.local
 gemini-chat.js
+gemini-streaming.js
+index.html
