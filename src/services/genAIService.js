@@ -5,33 +5,39 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 class GenAIService {
   constructor(apiKey) {
     this.genAI = new GoogleGenerativeAI(apiKey);
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
+    this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
   }
 
   async sendMessage(message, history = []) {
-    const formattedHistory = history.map((msg) => ({
-      role: msg.author,
-      content: {
-        parts: [msg.content],
-      },
-    }));    
+       
+  const previusMessages = history.slice(0, -1);
+
+  const previusConvesation = previusMessages.map(msg => `${msg.author}: ${msg.content}`).join('\n');
+
+  const reversedMessages = [...previusMessages].reverse();
+
+  const lastUserMessage = reversedMessages.find(msg => msg.author === 'user')?.content || '';
+  
+  const prompt =  `Conversa anterior:
+      ${previusConvesation}
+
+      Sua última pergunta: ${lastUserMessage}
+
+      Responda à pergunta: ${message}
+    `
+
+  console.log('previus conversation:', previusConvesation);
   
     const chat = this.model.startChat({
-      messages: formattedHistory,
+      messages: [],
       generationConfig: {
         maxOutputTokens: 500,
       },
     });
   
     try {
-      const messageObject = {
-        content: {
-          parts: [message],
-        },
-      };
-  
-      const result = await chat.sendMessageStream(message);
-  
+      const result = await chat.sendMessageStream(prompt);      
+
       const response = await result.response;
       const text = await response.text();
   
