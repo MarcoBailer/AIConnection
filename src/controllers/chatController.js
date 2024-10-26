@@ -24,7 +24,7 @@ export const sendMessage = async (req, res) => {
     const session = await getSession(sessionId);
     const history = session.messages;
 
-    const responseContent = await genAIService.sendMessage(message, history);
+    const responseContent = await genAIService.sendMessage(sessionId, message, history);
 
     await addMessageToSession(sessionId, { author: 'ai', content: responseContent });
 
@@ -55,7 +55,7 @@ export const sendMessageStream = async (req, res) => {
     const session = await getSession(sessionId);
     const history = session.messages;
 
-    const result = await genAIService.sendMessageStream(message, history);
+    const result = await genAIService.sendMessageStream(sessionId, message, history);
 
     if (!result.stream) {
       console.error('Erro: result.stream está indefinido');
@@ -81,4 +81,3 @@ export const sendMessageStream = async (req, res) => {
     res.end();
   }
 };
-
