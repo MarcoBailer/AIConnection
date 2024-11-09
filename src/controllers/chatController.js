@@ -2,26 +2,37 @@ import genAIService from '../services/genAIService.js';
 import { getSession, addMessageToSession, createSession } from '../services/sessionService.js';
 
 export const startSession = async (req, res) => {
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'userId é obrigatório.' });
+  }
+
   try {
-    const sessionId = await createSession();
-    res.json({ sessionId });
+    const session = await createSession(userId);
+    res.json({ sessionId: session.sessionId });
   } catch (error) {
-    console.error('Erro ao iniciar sessão:', error);
+    console.error('Erro ao criar sessão:', error);
     res.status(500).json({ error: 'Erro interno do servidor.' });
   }
 };
 
 export const sendMessage = async (req, res) => {
-  const { sessionId, message } = req.body;
+  const { sessionId, message, userId } = req.body;
 
-  if (!sessionId || !message) {
-    return res.status(400).json({ error: 'sessionId e message são obrigatórios.' });
+  if (!sessionId || !message || !userId) {
+    return res.status(400).json({ error: 'sessionId, userId e message são obrigatórios.' });
   }
 
   try {
+    const session = await getSession(sessionId);
+
+    if (!session || session.userId !== userId) {
+      return res.status(404).json({ error: 'Sessão não encontrada ou não pertence ao usuário' });
+    }
+
     await addMessageToSession(sessionId, { author: 'user', content: message });
 
-    const session = await getSession(sessionId);
     const history = session.messages;
 
     const responseContent = await genAIService.sendMessage(sessionId, message, history);
@@ -36,13 +47,21 @@ export const sendMessage = async (req, res) => {
 };
 
 export const sendMessageStream = async (req, res) => {
-  const { sessionId, message } = req.query;
+  const { sessionId, message, userId } = req.query;
 
-  if (!sessionId || !message) {
-    return res.status(400).json({ error: 'sessionId e message são obrigatórios.' });
+  if (!sessionId || !message || !userId) {
+    return res.status(400).json({ error: 'sessionId, userId e message são obrigatórios.' });
   }
 
   try {
+    const session = await getSession(sessionId);
+
+    if (!session || session.userId !== userId) {
+      res.write(`event: error\ndata: "Sessão não encontrada ou não pertence ao usuário."\n\n`);
+      res.end();
+      return;
+    }
+    
     res.set({
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
@@ -52,7 +71,6 @@ export const sendMessageStream = async (req, res) => {
 
     await addMessageToSession(sessionId, { author: 'user', content: message });
 
-    const session = await getSession(sessionId);
     const history = session.messages;
 
     const result = await genAIService.sendMessageStream(sessionId, message, history);

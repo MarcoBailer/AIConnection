@@ -1,11 +1,14 @@
 import { v4 as uuidv4 } from 'uuid';
 import Session from '../models/Session.js';
 
-export const createSession = async () => {
-  const sessionId = uuidv4();
-  const session = new Session({ sessionId, messages: [] });
+export const createSession = async (userId) => {
+  const session = new Session({
+    sessionId: uuidv4(),
+    userId: userId,
+    messages: [],
+  });
   await session.save();
-  return sessionId;
+  return session;
 };
 
 export const getSession = async (sessionId) => {
