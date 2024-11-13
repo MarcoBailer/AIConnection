@@ -1,6 +1,9 @@
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
+import fs from 'fs';
 dotenv.config({ path: '.env.local' });
+
+const publicKey = fs.readFileSync('assets/keys/public.key', 'utf8');
 
 export const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -10,9 +13,7 @@ export const authenticateToken = (req, res, next) => {
     return res.status(401).json({ error: 'Token de autenticação não fornecido.' });
   }
   
-  const secret = process.env.JWT_SECRET;
-
-  jwt.verify(token, secret, (err, decoded) => {
+  jwt.verify(token, publicKey,{algorithms: ['RS256']}, (err, decoded) => {
     console.log('Token recebido:', token);
     console.log('Segredo usado:', secret);
     if (err) {
