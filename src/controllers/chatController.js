@@ -2,7 +2,8 @@ import genAIService from '../services/genAIService.js';
 import { getSession, addMessageToSession, createSession } from '../services/sessionService.js';
 
 export const startSession = async (req, res) => {
-  const { userId } = req.body;
+  const  userId  = req.user.userId;
+  console.log('userId controller:', userId);
 
   if (!userId) {
     return res.status(400).json({ error: 'userId é obrigatório.' });
