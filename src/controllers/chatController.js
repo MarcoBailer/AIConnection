@@ -3,7 +3,6 @@ import { getSession, addMessageToSession, createSession } from '../services/sess
 
 export const startSession = async (req, res) => {
   const  userId  = req.user.userId;
-  console.log('userId controller:', userId);
 
   if (!userId) {
     return res.status(400).json({ error: 'userId é obrigatório.' });
@@ -19,7 +18,8 @@ export const startSession = async (req, res) => {
 };
 
 export const sendMessage = async (req, res) => {
-  const { sessionId, message, userId } = req.body;
+  const { sessionId, message } = req.body;
+  const  userId  = req.user.userId;
 
   if (!sessionId || !message || !userId) {
     return res.status(400).json({ error: 'sessionId, userId e message são obrigatórios.' });
@@ -48,7 +48,8 @@ export const sendMessage = async (req, res) => {
 };
 
 export const sendMessageStream = async (req, res) => {
-  const { sessionId, message, userId } = req.query;
+  const { sessionId, message } = req.query;
+  const  userId  = req.user.userId;
 
   if (!sessionId || !message || !userId) {
     return res.status(400).json({ error: 'sessionId, userId e message são obrigatórios.' });

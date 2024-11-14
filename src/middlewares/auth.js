@@ -14,8 +14,6 @@ export const authenticateToken = (req, res, next) => {
   }
   
   jwt.verify(token, publicKey,{algorithms: ['RS256']}, (err, decoded) => {
-    console.log('Token recebido:', token);
-    console.log('Segredo usado:', secret);
     if (err) {
       return res.status(403).json({ error: 'Token inválido ou expirado.' });
     }
@@ -27,7 +25,6 @@ export const authenticateToken = (req, res, next) => {
     }
 
     req.user = { userId };
-    console.log('userId extraído:', req.user.userId);
     next();
   });
 };
