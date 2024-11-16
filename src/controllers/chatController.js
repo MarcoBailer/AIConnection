@@ -1,5 +1,5 @@
 import genAIService from '../services/genAIService.js';
-import { getSession, addMessageToSession, createSession } from '../services/sessionService.js';
+import { getSession, addMessageToSession, createSession, getUserSessions } from '../services/sessionService.js';
 
 export const startSession = async (req, res) => {
   const  userId  = req.user.userId;
@@ -16,6 +16,22 @@ export const startSession = async (req, res) => {
     res.status(500).json({ error: 'Erro interno do servidor.' });
   }
 };
+
+export const UserSessions = async (req, res) => {
+  const  userId  = req.user.userId;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'userId é obrigatório.' });
+  }
+
+  try {
+    const sessions = await getUserSessions(userId);
+    res.json(sessions);
+  } catch (error) {
+    console.error('Erro ao obter sessões do usuário:', error);
+    res.status(500).json({ error: 'Erro interno do servidor.' });
+  }
+}
 
 export const sendMessage = async (req, res) => {
   const { sessionId, message } = req.body;
