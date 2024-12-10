@@ -11,6 +11,10 @@ const SessionSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  name: {
+    type: String,
+    required: true,
+  },
   messages: [MessageSchema],
   createdAt: {
     type: Date,

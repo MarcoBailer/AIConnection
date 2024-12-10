@@ -3,14 +3,15 @@ import { getSession, addMessageToSession, createSession, getUserSessions } from 
 
 export const startSession = async (req, res) => {
   const  userId  = req.user.userId;
+  const { name } = req.body;
 
-  if (!userId) {
-    return res.status(400).json({ error: 'userId é obrigatório.' });
+  if (!userId || !name) {
+    return res.status(400).json({ error: 'userId e nome são obrigatórios.' });
   }
 
   try {
-    const session = await createSession(userId);
-    res.json({ sessionId: session.sessionId });
+    const session = await createSession(userId, name);
+    res.json({ name: session.name });
   } catch (error) {
     console.error('Erro ao criar sessão:', error);
     res.status(500).json({ error: 'Erro interno do servidor.' });
