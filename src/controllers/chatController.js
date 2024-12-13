@@ -11,7 +11,7 @@ export const startSession = async (req, res) => {
 
   try {
     const session = await createSession(userId, name);
-    res.json({ name: session.name });
+    res.json({ session });
   } catch (error) {
     console.error('Erro ao criar sessão:', error);
     res.status(500).json({ error: 'Erro interno do servidor.' });
