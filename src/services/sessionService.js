@@ -20,6 +20,14 @@ export const getUserSessions = async (userId) => {
   return await Session.find({ userId });
 };
 
+export const getMessageSession = async (sessionId) => {
+  const session = await getSession(sessionId);
+  if (!session) {
+    throw new Error('Sessão não encontrada');
+  }
+  return session.messages;
+}
+
 export const addMessageToSession = async (sessionId, message) => {
   const session = await getSession(sessionId);
   if (!session) {
